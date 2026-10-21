@@ -23,7 +23,7 @@ setup(
         "Operating System :: POSIX :: Linux",
     ],
     packages=['GP8XXX_IIC'],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         'smbus2'
     ],

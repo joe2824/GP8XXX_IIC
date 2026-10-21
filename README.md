@@ -15,11 +15,19 @@ The GP8XXX-IIC module provides an interface for controlling DAC (Digital to Anal
   - GP8403: 12-bit DAC Dual Channel I2C to 0-5V/0-10V
 
 ## Installation
-You can install the GP8XXX module from PyPI using pip:
+You can install the GP8XXX module from PyPI using pip (Python 3.8 or newer):
 
 ```bash
 pip install GP8XXX-IIC
 ```
+
+To save the output in the chip with `store()`, install the optional `lgpio` dependency as well:
+
+```bash
+pip install "GP8XXX-IIC[store]"
+```
+
+On Raspberry Pi OS (Bookworm/Trixie) `lgpio` is also available as system package: `sudo apt install python3-lgpio`.
 
 ## Example
 ```python
@@ -73,11 +81,7 @@ dac.set_dac_out_electric_current(0.012)  # 12mA
 ```
 
 ## Store output values
-The chip can save the current output so it's restored after a power cycle. The store sequence isn't valid I2C (3-bit frame, unacknowledged bytes), so it's bit-banged on the SDA/SCL pins with `lgpio` (preinstalled on Raspberry Pi OS Bookworm, works on the Pi 5). The pin functions are read with `pinctrl` beforehand and restored afterwards, so the hardware I2C bus keeps working.
-
-```bash
-pip install GP8XXX-IIC[store]  # or: sudo apt install python3-lgpio
-```
+The chip can save the current output so it's restored after a power cycle. The store sequence isn't valid I2C (3-bit frame, unacknowledged bytes), so it's bit-banged on the SDA/SCL pins with `lgpio` (see [Installation](#installation), works on the Pi 5). The pin functions are read with `pinctrl` beforehand and restored afterwards, so the hardware I2C bus keeps working.
 
 ```python
 dac.set_dac_out_voltage(voltage=6.821, channel=0)
