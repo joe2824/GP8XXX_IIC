@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="GP8XXX_IIC",
     keywords='Raspberry Pi, Raspi, GP8403, GP8503, GP8211S, GP8512, GP8413, GP8302, DAC',
-    version="0.0.4",
+    version="0.0.5",
     author="Joel Klein",
     description="The GP8XXX Python module offers an intuitive interface for controlling DAC (Digital to Analog Converter) devices via the I2C protocol. With support for various DAC models.",
     long_description=long_description,
@@ -23,8 +23,12 @@ setup(
         "Operating System :: POSIX :: Linux",
     ],
     packages=['GP8XXX_IIC'],
-    python_requires=">=3",
+    python_requires=">=3.7",
     install_requires=[
         'smbus2'
-    ]
+    ],
+    extras_require={
+        # Needed for store()
+        'store': ['lgpio'],
+    }
 )
