@@ -28,7 +28,7 @@ from GP8XXX_IIC import GP8403
 
 dac = GP8403(i2c_addr=0x5F)
 
-while not dac.begin():
+while dac.begin():
     print("init error")
     time.sleep(1)
 
@@ -62,22 +62,27 @@ dac.set_dac_out_voltage(1.9)
 ```
 
 ### GP8302 (0-25mA / 4-20mA)
-The current is set in mA. The full scale is 50V / Rset (25mA with Rset = 2kOhm on the DFRobot module). For an accurate 4-20mA signal measure the DAC codes for 4mA and 20mA and pass them to `calibration4_20ma()`.
+The current is set in A. The full scale is 50V / Rset (0.025A with Rset = 2kOhm on the DFRobot module, pass `full_scale=0.020` for Rset = 2.5kOhm). For an accurate 4-20mA signal measure the DAC codes for 4mA and 20mA and pass them to `calibration4_20ma()`.
 
 ```python
 from GP8XXX_IIC import GP8302
 
 dac = GP8302()
 dac.calibration4_20ma(dac_4=655, dac_20=3277)
-dac.set_dac_out_electric_current(12.0)
+dac.set_dac_out_electric_current(0.012)  # 12mA
 ```
 
 ## Store output values
 The chip can save the current output so it's restored after a power cycle. The store sequence isn't valid I2C (3-bit frame, unacknowledged bytes), so it's bit-banged on the SDA/SCL pins with `lgpio` (preinstalled on Raspberry Pi OS Bookworm, works on the Pi 5). The pin functions are read with `pinctrl` beforehand and restored afterwards, so the hardware I2C bus keeps working.
 
+```bash
+pip install GP8XXX-IIC[store]  # or: sudo apt install python3-lgpio
+```
+
 ```python
 dac.set_dac_out_voltage(voltage=6.821, channel=0)
-dac.store()  # default pins: SDA=GPIO2, SCL=GPIO3 (BCM)
+dac.store()  # bus 1: SDA=GPIO2, SCL=GPIO3 (BCM)
+dac.store(sda_pin=22, scl_pin=23)  # other buses: pass the pins of the bus
 ```
 
 > [!NOTE]
