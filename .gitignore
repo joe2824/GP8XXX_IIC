@@ -3,6 +3,7 @@ phdata.txt
 ecdata.txt
 *.egg-info
 dist/
+build/
 .DS_Store
 .venv
 .pypirc

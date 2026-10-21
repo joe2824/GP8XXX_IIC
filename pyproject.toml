@@ -1,7 +1,32 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-
-]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "GP8XXX_IIC"
+version = "0.0.5"
+description = "The GP8XXX Python module offers an intuitive interface for controlling DAC (Digital to Analog Converter) devices via the I2C protocol. With support for various DAC models."
+readme = "README.md"
+authors = [{ name = "Joel Klein" }]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["Raspberry Pi", "Raspi", "GP8403", "GP8503", "GP8211S", "GP8512", "GP8413", "GP8302", "DAC"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+requires-python = ">=3.8"
+dependencies = ["smbus2"]
+
+[project.optional-dependencies]
+# Needed for store()
+store = ["lgpio"]
+
+[project.urls]
+Homepage = "https://github.com/joe2824/GP8XXX_IIC/"
+"Bug Tracker" = "https://github.com/joe2824/GP8XXX_IIC/issues"
+Github = "https://github.com/joe2824/GP8XXX_IIC/"
+
+[tool.setuptools]
+packages = ["GP8XXX_IIC"]
