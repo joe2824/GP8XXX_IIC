@@ -5,7 +5,7 @@ The GP8XXX-IIC module provides an interface for controlling DAC (Digital to Anal
 ## Features
 
 - **I2C Communication**: Utilizes the smbus2 library for communicating with DAC devices over the I2C bus.
-- **Output Ranges**: Supports different output voltage ranges including 0-5V, 0-10V.
+- **Output Ranges**: Supports 0-5V/0-10V (with automatic range selection), 0-2.5V/0-VCC and 0-25mA/4-20mA.
 - **Support Multiple DAC Models**:
   - GP8302: 12-bit DAC I2C to 0-25mA/4-20mA
   - GP8211S: 15-bit DAC I2C to 0-5V/0-10V
@@ -26,28 +26,62 @@ pip install GP8XXX-IIC
 import time
 from GP8XXX_IIC import GP8403
 
-GP8403 = GP8403(i2c_addr=0x5F)
+dac = GP8403(i2c_addr=0x5F)
 
-while GP8403.begin():
+while not dac.begin():
     print("init error")
     time.sleep(1)
 
-# Optional
-# GP8403.set_dac_outrange(GP8403.OUTPUT_RANGE_10V)
+# Optional, the range is selected automatically by default (auto_range=True)
+# dac.set_dac_outrange(dac.OUTPUT_RANGE_10V)
 
-# Chanel 1: 6.721V
-GP8403.set_dac_out_voltage(voltage=6.821, channel=0)
-
-time.sleep(3)
-
-# Chanel 2: 2.774V
-GP8403.set_dac_out_voltage(voltage=2.774, channel=1)
+# Channel 0: 6.821V
+dac.set_dac_out_voltage(voltage=6.821, channel=0)
 
 time.sleep(3)
 
-# Chanel 1 & 2: 0.253V
-GP8403.set_dac_out_voltage(voltage=0.253, channel=2)
+# Channel 1: 2.774V
+dac.set_dac_out_voltage(voltage=2.774, channel=1)
+
+time.sleep(3)
+
+# Channel 0 & 1: 0.253V
+dac.set_dac_out_voltage(voltage=0.253, channel=2)
 ```
+
+Voltages outside of the output range are clamped. With `auto_range=False` call `set_dac_outrange()` before setting a voltage.
+
+### GP8503 / GP8512 (0-2.5V/0-VCC)
+The range is selected by the REFEN switch on the module, not by software. With the switch on 0-VCC pass the supply voltage as full scale:
+
+```python
+from GP8XXX_IIC import GP8512
+
+dac = GP8512(vref=5.0)  # default vref=2.5 for the 0-2.5V switch position
+dac.set_dac_out_voltage(1.9)
+```
+
+### GP8302 (0-25mA / 4-20mA)
+The current is set in mA. The full scale is 50V / Rset (25mA with Rset = 2kOhm on the DFRobot module). For an accurate 4-20mA signal measure the DAC codes for 4mA and 20mA and pass them to `calibration4_20ma()`.
+
+```python
+from GP8XXX_IIC import GP8302
+
+dac = GP8302()
+dac.calibration4_20ma(dac_4=655, dac_20=3277)
+dac.set_dac_out_electric_current(12.0)
+```
+
+## Store output values
+The chip can save the current output so it's restored after a power cycle. The store sequence isn't valid I2C (3-bit frame, unacknowledged bytes), so it's bit-banged on the SDA/SCL pins with `lgpio` (preinstalled on Raspberry Pi OS Bookworm, works on the Pi 5). The pin functions are read with `pinctrl` beforehand and restored afterwards, so the hardware I2C bus keeps working.
+
+```python
+dac.set_dac_out_voltage(voltage=6.821, channel=0)
+dac.store()  # default pins: SDA=GPIO2, SCL=GPIO3 (BCM)
+```
+
+> [!NOTE]
+> While storing (~15ms) the pins are taken away from the I2C controller. Other programs using the same bus get I2C errors during that time, and the bit-banged frames are seen by every device on the bus (the sequence also writes to address `0x08`). Call `store()` once while nothing else uses the bus, or put the DAC on its own bus.
 
 ## Tested devices
 
@@ -55,7 +89,6 @@ GP8403.set_dac_out_voltage(voltage=0.253, channel=2)
 |------------|--------|
 |GP8503      | ❌     |
 |GP8211S     | ❌     |
-|GP8512      | ❌     |
 |GP8512      | ❌     |
 |GP8413      | ✅     |
 |GP8403      | ✅     |
